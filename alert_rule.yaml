@@ -1,0 +1,32 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: alert-rules
+  namespace: monitoring
+  # add labels to peak these rules up by identifying
+  labels:
+    app: kube-prometheus-stack
+    release: monitoring
+spec:
+  groups:
+  - name: alert.rules
+    rules:
+    - alert: HighCpuLoad
+      expr: 100 - (avg by(instance)( rate(node_cpu_seconds_total{mode="idle"}[3m])) * 100) > 40
+      for: 2m
+      labels:
+        severity: warning
+        namespace: monitoring
+      annotations:
+        description: "CPU load on the instance is over 60% Value = {{ $value }} \n Instance = {{ $labels.instance}} \n"
+        summary: "Host CPU load High"
+
+    - alert: PodCrashLooping
+      # for restarting more than 5 times
+      expr: kube_pod_container_status_restarts_total > 5
+      for: 0m
+      labels:
+        severity: critical
+      annotations:
+        description: "Pod  {{ $labels.pod }} is crash looping\n value = {{ $value }}"
+        summary: "Kubernetes pod is crash looping"

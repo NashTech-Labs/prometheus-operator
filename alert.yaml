@@ -1,0 +1,10 @@
+name: HighCpuLoad
+expr: 100 - (avg by(instance)( rate(node_cpu_seconds_total{mode="idle"}[3m])) * 100) > 60
+# greater than 60 %
+for: 2m
+labels:
+  severity: warning
+  namespace: monitoring
+annotations:
+  description: "CPU load on the instance is over 60% Value = {{ $value }} \n Instance = {{ $labels.instance}} \n"
+  summary: "Host CPU load High"
